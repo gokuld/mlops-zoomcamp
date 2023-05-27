@@ -1,3 +1,7 @@
+import mlflow
+
+mlflow.autolog()
+
 import os
 import pickle
 import click
@@ -9,6 +13,9 @@ from sklearn.metrics import mean_squared_error
 def load_pickle(filename: str):
     with open(filename, "rb") as f_in:
         return pickle.load(f_in)
+
+
+mlflow.set_experiment("homework_2")
 
 
 @click.command()
@@ -23,10 +30,14 @@ def run_train(data_path: str):
     X_val, y_val = load_pickle(os.path.join(data_path, "val.pkl"))
 
     rf = RandomForestRegressor(max_depth=10, random_state=0)
-    rf.fit(X_train, y_train)
-    y_pred = rf.predict(X_val)
+    with mlflow.start_run() as run:
+        rf.fit(X_train, y_train)
 
-    rmse = mean_squared_error(y_val, y_pred, squared=False)
+        y_pred = rf.predict(X_val)
+
+        rmse = mean_squared_error(y_val, y_pred, squared=False)
+
+        mlflow.log_metric("rmse", rmse)
 
 
 if __name__ == '__main__':
