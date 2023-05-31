@@ -7,6 +7,7 @@ import optuna
 from optuna.samplers import TPESampler
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
+from mlflow.models.signature import infer_signature
 
 mlflow.set_tracking_uri("http://127.0.0.1:5000")
 mlflow.set_experiment("random-forest-hyperopt")
@@ -49,6 +50,9 @@ def run_optimization(data_path: str, num_trials: int):
             y_pred = rf.predict(X_val)
             rmse = mean_squared_error(y_val, y_pred, squared=False)
 
+            mlflow.log_params(params)
+            signature = infer_signature(X_train, y_train)
+            mlflow.sklearn.log_model(rf, artifact_path='model', signature=signature)
             mlflow.log_metric("rmse", rmse)
 
         return rmse
