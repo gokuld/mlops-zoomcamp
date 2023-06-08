@@ -9,6 +9,7 @@ from sklearn.metrics import mean_squared_error
 import mlflow
 import xgboost as xgb
 from prefect import flow, task
+from prefect.artifacts import create_markdown_artifact
 
 
 @task(retries=3, retry_delay_seconds=2, name="Read taxi data")
@@ -99,6 +100,15 @@ def train_best_model(
         y_pred = booster.predict(valid)
         rmse = mean_squared_error(y_val, y_pred, squared=False)
         mlflow.log_metric("rmse", rmse)
+
+        markdown_val_rmse = f"""
+        # Validation RMSE error:
+        {rmse}
+        """
+
+        create_markdown_artifact(
+            key="duration-model-val-rmse", markdown=markdown_val_rmse
+        )
 
         pathlib.Path("models").mkdir(exist_ok=True)
         with open("models/preprocessor.b", "wb") as f_out:
