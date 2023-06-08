@@ -1,0 +1,18 @@
+# File for configuring project / deployment build, push and pull steps
+
+# Generic metadata about this project
+name: homework_3
+prefect-version: 2.10.8
+
+# build section allows you to manage and build docker images
+build: null
+
+# push section allows you to manage if and how this project is uploaded to remote locations
+push: null
+
+# pull section allows you to provide instructions for cloning this project in remote locations
+pull:
+- prefect.projects.steps.git_clone_project:
+    repository: git@github.com:gokuld/mlops-zoomcamp.git
+    branch: homework_week_3_dev
+    access_token: null
