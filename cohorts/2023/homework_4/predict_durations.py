@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+import os
 import pickle
 import pandas as pd
 import click
 
-# Parameters
-year = 2022
-month = 2
 
-output_file = "./output/duration_predictions.parquet"
+# Parameters
+output_directory = "./output/"
 
 # Load model, data and make predictions
 
@@ -48,6 +47,9 @@ def predict_durations(year, month):
     return df_result
 
 
+@click.command()
+@click.option("--year", "-y", required=True, type=click.IntRange(min=0000, max=9999))
+@click.option("--month", "-m", required=True, type=click.IntRange(min=1, max=12))
 def predict_durations_and_save_output(year, month):
     df_result = predict_durations(year, month)
 
@@ -57,8 +59,13 @@ def predict_durations_and_save_output(year, month):
     )
 
     # Save predictions to file
-    df_result.to_parquet(output_file, engine="pyarrow", compression=None, index=False)
+    output_uri = os.path.join(
+        output_directory,
+        f"duration_predictions_yellow_tripdata_{year:04d}_{month:02d}.parquet",
+    )
+    print(f"Saving predictions to {output_uri}")
+    df_result.to_parquet(output_uri, engine="pyarrow", compression=None, index=False)
 
 
 if __name__ == "__main__":
-    predict_durations_and_save_output(year, month)
+    predict_durations_and_save_output()
