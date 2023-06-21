@@ -4,7 +4,7 @@
 # In[1]:
 
 
-get_ipython().system('pip freeze | grep scikit-learn')
+get_ipython().system("pip freeze | grep scikit-learn")
 
 
 # In[2]:
@@ -34,7 +34,7 @@ import seaborn as sns
 year = 2022
 month = 2
 
-output_file = './output/duration_predictions.parquet'
+output_file = "./output/duration_predictions.parquet"
 
 
 # # Load model, data and make predictions
@@ -42,38 +42,41 @@ output_file = './output/duration_predictions.parquet'
 # In[6]:
 
 
-with open('model.bin', 'rb') as f_in:
+with open("model.bin", "rb") as f_in:
     dv, model = pickle.load(f_in)
 
 
 # In[7]:
 
 
-categorical = ['PULocationID', 'DOLocationID']
+categorical = ["PULocationID", "DOLocationID"]
+
 
 def read_data(filename):
     df = pd.read_parquet(filename)
-    
-    df['duration'] = df.tpep_dropoff_datetime - df.tpep_pickup_datetime
-    df['duration'] = df.duration.dt.total_seconds() / 60
+
+    df["duration"] = df.tpep_dropoff_datetime - df.tpep_pickup_datetime
+    df["duration"] = df.duration.dt.total_seconds() / 60
 
     df = df[(df.duration >= 1) & (df.duration <= 60)].copy()
 
-    df[categorical] = df[categorical].fillna(-1).astype('int').astype('str')
-    
+    df[categorical] = df[categorical].fillna(-1).astype("int").astype("str")
+
     return df
 
 
 # In[8]:
 
 
-df = read_data(f'https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{year:04d}-{month:02d}.parquet')
+df = read_data(
+    f"https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{year:04d}-{month:02d}.parquet"
+)
 
 
 # In[9]:
 
 
-dicts = df[categorical].to_dict(orient='records')
+dicts = df[categorical].to_dict(orient="records")
 X_val = dv.transform(dicts)
 y_pred = model.predict(X_val)
 
@@ -97,7 +100,7 @@ sns.displot(y_pred)
 # In[12]:
 
 
-df['ride_id'] = f'{year:04d}/{month:02d}_' + df.index.astype('str')
+df["ride_id"] = f"{year:04d}/{month:02d}_" + df.index.astype("str")
 
 
 # In[13]:
@@ -134,10 +137,4 @@ df_result.head()
 # In[32]:
 
 
-df_result.to_parquet(
-    output_file,
-    engine='pyarrow',
-    compression=None,
-    index=False
-)
-
+df_result.to_parquet(output_file, engine="pyarrow", compression=None, index=False)
