@@ -1,53 +1,20 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
-
-get_ipython().system("pip freeze | grep scikit-learn")
-
-
-# In[2]:
-
-
 import pickle
 import pandas as pd
+import click
 
-
-# In[3]:
-
-
-import numpy as np
-
-
-# In[4]:
-
-
-import seaborn as sns
-
-
-# # Parameters
-
-# In[5]:
-
-
+# Parameters
 year = 2022
 month = 2
 
 output_file = "./output/duration_predictions.parquet"
 
-
-# # Load model, data and make predictions
-
-# In[6]:
-
+# Load model, data and make predictions
 
 with open("model.bin", "rb") as f_in:
     dv, model = pickle.load(f_in)
-
-
-# In[7]:
-
 
 categorical = ["PULocationID", "DOLocationID"]
 
@@ -65,76 +32,33 @@ def read_data(filename):
     return df
 
 
-# In[8]:
+def predict_durations(year, month):
+    df = read_data(
+        f"https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{year:04d}-{month:02d}.parquet"
+    )
+
+    dicts = df[categorical].to_dict(orient="records")
+    X_val = dv.transform(dicts)
+    y_pred = model.predict(X_val)
+
+    df["ride_id"] = f"{year:04d}/{month:02d}_" + df.index.astype("str")
+
+    df_result = df.loc[:, ["ride_id"]].copy()
+    df_result["duration_prediction"] = y_pred
+    return df_result
 
 
-df = read_data(
-    f"https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_{year:04d}-{month:02d}.parquet"
-)
+def predict_durations_and_save_output(year, month):
+    df_result = predict_durations(year, month)
+
+    # print the standard deviation of predictions
+    print(
+        f"Standard deviation of predictions: {df_result['duration_prediction'].std()}"
+    )
+
+    # Save predictions to file
+    df_result.to_parquet(output_file, engine="pyarrow", compression=None, index=False)
 
 
-# In[9]:
-
-
-dicts = df[categorical].to_dict(orient="records")
-X_val = dv.transform(dicts)
-y_pred = model.predict(X_val)
-
-
-# # Q1: Standard deviation of predicted durations
-
-# In[10]:
-
-
-np.std(y_pred)
-
-
-# In[11]:
-
-
-sns.displot(y_pred)
-
-
-# # Q2: Save predictions to file
-
-# In[12]:
-
-
-df["ride_id"] = f"{year:04d}/{month:02d}_" + df.index.astype("str")
-
-
-# In[13]:
-
-
-df.info()
-
-
-# In[14]:
-
-
-df.head()
-
-
-# In[15]:
-
-
-df_result = df.loc[:, ["ride_id"]].copy()
-df_result["duration_prediction"] = y_pred
-
-
-# In[16]:
-
-
-df_result.info()
-
-
-# In[17]:
-
-
-df_result.head()
-
-
-# In[32]:
-
-
-df_result.to_parquet(output_file, engine="pyarrow", compression=None, index=False)
+if __name__ == "__main__":
+    predict_durations_and_save_output(year, month)
