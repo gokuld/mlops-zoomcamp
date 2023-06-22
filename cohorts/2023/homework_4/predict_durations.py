@@ -53,9 +53,10 @@ def predict_durations(year, month):
 def predict_durations_and_save_output(year, month):
     df_result = predict_durations(year, month)
 
-    # print the standard deviation of predictions
+    # print the mean and standard deviation of predictions
+    print(f"Mean of predicted durations: {df_result['duration_prediction'].mean()}")
     print(
-        f"Standard deviation of predictions: {df_result['duration_prediction'].std()}"
+        f"Standard deviation of predicted durations: {df_result['duration_prediction'].std()}"
     )
 
     # Save predictions to file
