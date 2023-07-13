@@ -6,3 +6,6 @@
 **/mlartifacts/**
 *.sqlite_db
 **/mlruns/**
+__pycache__
+*.pyc
+.prefect/**
