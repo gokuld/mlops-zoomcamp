@@ -32,8 +32,14 @@ def prepare_data(df, categorical):
 
 
 def read_data(filename, categorical):
-    df = pd.read_parquet(filename)
-    return prepare_data(dataframe, categorical)
+    S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL")
+
+    if S3_ENDPOINT_URL:
+        options = {"client_kwargs": {"endpoint_url": S3_ENDPOINT_URL}}
+        df = pd.read_parquet(filename, storage_options=options)
+    else:
+        df = pd.read_parquet(filename)
+    return prepare_data(df, categorical)
 
 
 def main(
